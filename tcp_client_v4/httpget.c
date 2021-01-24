@@ -210,9 +210,6 @@ Void taskFxn(UArg arg0, UArg arg1)
         value = DC - DCOld;
         DCOld = DC;
 
-
-
-
         //butterworth filter//////////////////////////////
         BWNew = (2.452372752527856026e-1 * value) + (0.50952544949442879485 *BWOld);
         BWOld = BWNew;
@@ -250,7 +247,7 @@ Void taskFxn(UArg arg0, UArg arg1)
     IIC_CloseComm();
 }
 
-
+//sends data to hercules////////////////////////////////////////////////
 bool sendData2Server(char *serverIP, int serverPort, char *data, int size)
 {
     int sockfd, connStat, numSend;
@@ -294,9 +291,6 @@ Void clientSocketTask(UArg arg0, UArg arg1)
     char time[64];
 
     while(1) {
-        // wait for the semaphore that httpTask() will signal
-        // when temperature string is retrieved from api.openweathermap.org site
-        //
 
         Mailbox_pend(mailbox0, &BPM, BIOS_WAIT_FOREVER);
         sprintf(BPMVal, "%d", BPM);
@@ -318,19 +312,14 @@ Void clientSocketTask(UArg arg0, UArg arg1)
         strcat(string,"\n");
 
 
-
-
-        // connect to SocketTest program on the system with given IP/port
-        // send hello message whihc has a length of 5.
-        //
         if(sendData2Server(SOCKETTEST_IP, OUTGOING_PORT, string, strlen(string))) {
-            System_printf("clientSocketTask:: Temperature is sent to the server\n");
+            System_printf("clientSocketTask:: Heart rate is sent to the server\n");
             System_flush();
         }
 
     }
 }
-
+//gets data from ntp///////////////////////////////
 void recvTimeStamptFromNTP(char *serverIP, int serverPort, char *data, int size)
 {
         System_printf("recvTimeStamptFromNTP start\n");
@@ -344,9 +333,9 @@ void recvTimeStamptFromNTP(char *serverIP, int serverPort, char *data, int size)
             System_printf("Socket not created");
             BIOS_exit(-1);
         }
-        memset(&serverAddr, 0, sizeof(serverAddr));  // clear serverAddr structure
+        memset(&serverAddr, 0, sizeof(serverAddr));
         serverAddr.sin_family = AF_INET;
-        serverAddr.sin_port = htons(37);     // convert port # to network order
+        serverAddr.sin_port = htons(37);
         inet_pton(AF_INET, serverIP , &(serverAddr.sin_addr));
 
         connStat = connect(sockfd, (struct sockaddr *)&serverAddr, sizeof(serverAddr));
@@ -368,18 +357,14 @@ void recvTimeStamptFromNTP(char *serverIP, int serverPort, char *data, int size)
 Void socketTask(UArg arg0, UArg arg1)
 {
 
-        // wait for the semaphore that httpTask() will signal
-        // when temperature string is retrieved from api.openweathermap.org site
-        //
         Semaphore_pend(semaphore3, BIOS_WAIT_FOREVER);
 
-        GPIO_write(Board_LED0, 1); // turn on the LED
+        GPIO_write(Board_LED0, 1);
 
         recvTimeStamptFromNTP("128.138.140.44", 37,timenow, strlen(timenow));
-        GPIO_write(Board_LED0, 0);  // turn off the LED
+        GPIO_write(Board_LED0, 0);
 
-        // wait for 5 seconds (5000 ms)
-        //
+
 }
 
 bool createTasks(void)
@@ -411,17 +396,16 @@ bool createTasks(void)
     taskHandle4 = Task_create((Task_FuncPtr)socketTask, &taskParams, &eb);
 
     if (taskHandle1 == NULL ||  taskHandle2 == NULL || taskHandle4 == NULL) {
-        printError("netIPAddrHook: Failed to create HTTP, Socket and Server Tasks\n", -1);
+        printError("netIPAddrHook: Failed to create Socket and Server Tasks\n", -1);
         return false;
     }
 
     return true;
 }
-//  This function is called when IP Addr is added or deleted
-//
+
 void netIPAddrHook(unsigned int IPAddr, unsigned int IfIdx, unsigned int fAdd)
 {
-    // Create a HTTP task when the IP address is added
+
     if (fAdd) {
         createTasks();
     }
@@ -429,7 +413,7 @@ void netIPAddrHook(unsigned int IPAddr, unsigned int IfIdx, unsigned int fAdd)
 
 int main(void)
 {
-    /* Call board init functions */
+    /
     Board_initGeneral();
     Board_initGPIO();
     Board_initEMAC();
