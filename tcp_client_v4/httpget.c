@@ -57,7 +57,7 @@ Void SWI_ISR(UArg arg1)
     while(1){
         Semaphore_pend(semaphore0, BIOS_WAIT_FOREVER);
         timenow  = takenTime[0]*16777216 +  takenTime[1]*65536 + takenTime[2]*256 + takenTime[3];
-        timenow += 10800;
+        timenow += 10800; //+3 hour because I live in turkey
         timenow += ctr++;
         System_printf("TIME: %s", ctime(&timenow));
         System_flush();
@@ -73,7 +73,7 @@ void printError(char *errString, int code)
     System_printf("Error! code = %d, desc = %s\n", code, errString);
     BIOS_exit(code);
 }
-
+//I2C com start////////////////
 bool IIC_OpenComm(void)
 {
     bool retval = false;
@@ -91,14 +91,14 @@ bool IIC_OpenComm(void)
     System_flush();
     return retval;
 }
-
+//com close///////////////
 void IIC_CloseComm(void)
 {
     I2C_close(i2c);
     System_printf("IIC_CloseComm()   I2C closed!\n");
     System_flush();
 }
-
+//write over sensor///////////
 bool IIC_writeReg(int device_ID, int addr, uint8_t val)
 {
     uint8_t txBuffer[2];
@@ -125,7 +125,7 @@ bool IIC_writeReg(int device_ID, int addr, uint8_t val)
 
     return retval;
 }
-
+//read from sensor////////////////////////
 bool IIC_readReg(int device_ID, int addr, int no_of_bytes, char *buf)
 {
     uint8_t txBuffer[2];
@@ -151,7 +151,7 @@ bool IIC_readReg(int device_ID, int addr, int no_of_bytes, char *buf)
 
     return retval;
 }
-
+//get fifo data, filter////////////////////
 Void taskFxn(UArg arg0, UArg arg1)
 {
 
@@ -283,7 +283,7 @@ bool sendData2Server(char *serverIP, int serverPort, char *data, int size)
     close(sockfd);
     return retval;
 }
-
+//create string to sent hercules///////////
 Void clientSocketTask(UArg arg0, UArg arg1)
 {   int BPM;
     char BPMVal[8];
@@ -353,7 +353,7 @@ void recvTimeStamptFromNTP(char *serverIP, int serverPort, char *data, int size)
         }
         if (sockfd > 0) close(sockfd);
 }
-
+//ntp task///////////////////
 Void socketTask(UArg arg0, UArg arg1)
 {
 
@@ -366,7 +366,7 @@ Void socketTask(UArg arg0, UArg arg1)
 
 
 }
-
+//creates tasks///////////////////
 bool createTasks(void)
 {
     static Task_Handle taskHandle1, taskHandle2, taskHandle3, taskHandle4;
